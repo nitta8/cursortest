@@ -17,7 +17,7 @@ irm https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1 | iex
 3. `C:\Users\あなたの名前\cursortest` にインストール
 4. `C:\Users\あなたの名前\tasks.cmd` を作成
 
-インストール後は **PowerShell を一度閉じて開き直してから**:
+インストール後:
 
 ```powershell
 tasks add "牛乳を買う"
@@ -25,13 +25,18 @@ tasks list
 tasks done 1
 ```
 
-すぐ使う場合（PATH 反映前）:
+`tasks` が見つからない場合は、**今すぐ** 次のどちらか:
 
 ```powershell
-~\bin\tasks.cmd add "牛乳を買う"
-# または
-cd $env:USERPROFILE\cursortest
-python tasks.py list
+.\tasks.cmd add "牛乳を買う"
+python "$env:USERPROFILE\cursortest\tasks.py" list
+```
+
+再インストール後もダメなら:
+
+```powershell
+. $PROFILE
+tasks list
 ```
 
 > Python が未インストールの場合は、表示された案内に従って Python を入れてから、もう一度上の1行を実行してください。

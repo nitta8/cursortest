@@ -9,6 +9,7 @@ $BinDir = Join-Path $env:USERPROFILE "bin"
 $ZipPath = Join-Path $env:TEMP "cursortest-main.zip"
 $ExtractRoot = Join-Path $env:TEMP "cursortest-extract"
 $LauncherPath = Join-Path $BinDir "tasks.cmd"
+$ProfileMarker = "# cursortest tasks command"
 
 function Write-Step($Message) {
     Write-Host "=> $Message" -ForegroundColor Cyan
@@ -39,6 +40,40 @@ function Add-ToUserPath([string]$Directory) {
     $newPath = if ($userPath) { "$userPath;$Directory" } else { $Directory }
     [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
     $env:Path = "$env:Path;$Directory"
+}
+
+function Install-TasksFunction([string]$InstallDirectory) {
+    $profilePath = $PROFILE
+    $profileDir = Split-Path $profilePath -Parent
+    if (-not (Test-Path $profileDir)) {
+        New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+    }
+
+    $escapedDir = $InstallDirectory -replace "'", "''"
+    $profileBlock = @"
+$ProfileMarker
+function global:tasks {
+    & python '$escapedDir\tasks.py' @args
+}
+"@
+
+    if (Test-Path $profilePath) {
+        $existing = Get-Content $profilePath -Raw
+        if ($existing -match [regex]::Escape($ProfileMarker)) {
+            $existing = [regex]::Replace(
+                $existing,
+                "(?ms)$([regex]::Escape($ProfileMarker)).*?^}",
+                $profileBlock
+            )
+            Set-Content -Path $profilePath -Value $existing -Encoding UTF8
+        } else {
+            Add-Content -Path $profilePath -Value "`n$profileBlock" -Encoding UTF8
+        }
+    } else {
+        Set-Content -Path $profilePath -Value $profileBlock -Encoding UTF8
+    }
+
+    Invoke-Expression $profileBlock
 }
 
 Write-Step "Checking Python..."
@@ -77,8 +112,16 @@ New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
     "python tasks.py %*"
 ) | Set-Content -Path $LauncherPath -Encoding ASCII
 
+$legacyLauncher = Join-Path $env:USERPROFILE "tasks.cmd"
+if (Test-Path $legacyLauncher) {
+    Remove-Item $legacyLauncher -Force
+}
+
 Write-Step "Adding launcher folder to PATH..."
 Add-ToUserPath $BinDir
+
+Write-Step "Registering PowerShell command 'tasks'..."
+Install-TasksFunction $InstallDir
 
 Write-Step "Running a quick test..."
 Push-Location $InstallDir
@@ -97,11 +140,13 @@ Write-Host ""
 Write-Host "Install folder: $InstallDir"
 Write-Host "Launcher:       $LauncherPath"
 Write-Host ""
-Write-Host "Important: close PowerShell and open it again, then run:"
+Write-Host "Use these commands in PowerShell:"
 Write-Host "  tasks add `"牛乳を買う`""
 Write-Host "  tasks list"
 Write-Host ""
-Write-Host "If PATH is not updated yet, use either:"
-Write-Host "  $LauncherPath add `"牛乳を買う`""
-Write-Host "  cd $InstallDir"
-Write-Host "  python tasks.py list"
+Write-Host "If 'tasks' is still not found in this window, run:"
+Write-Host "  . `$PROFILE"
+Write-Host "  tasks list"
+Write-Host ""
+Write-Host "Or use the full path right now:"
+Write-Host "  python `"$InstallDir\tasks.py`" list"
