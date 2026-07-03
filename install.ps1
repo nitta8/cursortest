@@ -1,6 +1,5 @@
-# Windows one-click setup for cursortest (no Git required).
-# Version: 4
-# Usage: powershell -ExecutionPolicy Bypass -File install.ps1
+# Windows one-click setup for cursortest (ASCII only for compatibility).
+# Version: 5
 
 $ErrorActionPreference = "Stop"
 
@@ -9,8 +8,8 @@ $InstallDir = Join-Path $env:USERPROFILE "cursortest"
 $ZipPath = Join-Path $env:TEMP "cursortest-main.zip"
 $ExtractRoot = Join-Path $env:TEMP "cursortest-extract"
 $Desktop = [Environment]::GetFolderPath("Desktop")
-$ShortcutPath = Join-Path $Desktop "やることリスト.lnk"
-$LauncherPath = Join-Path $Desktop "やることリスト.cmd"
+$ShortcutPath = Join-Path $Desktop "TaskList.lnk"
+$LauncherPath = Join-Path $Desktop "TaskList.cmd"
 
 function Write-Step($Message) {
     Write-Host "=> $Message" -ForegroundColor Cyan
@@ -48,15 +47,14 @@ $pythonPath = Find-Python
 if (-not $pythonPath) {
     Write-Host ""
     Write-Host "Python is not installed." -ForegroundColor Red
-    Write-Host "1. Open https://www.python.org/downloads/"
-    Write-Host "2. Install Python and check 'Add python.exe to PATH'"
-    Write-Host "3. Close PowerShell, open it again, and rerun this script."
+    Write-Host "Install from https://www.python.org/downloads/"
+    Write-Host "Then close PowerShell and run this installer again."
     exit 1
 }
 
 Write-Host "   Found: $pythonPath"
 
-Write-Step "Downloading cursortest..."
+Write-Step "Downloading app..."
 if (Test-Path $ExtractRoot) {
     Remove-Item $ExtractRoot -Recurse -Force
 }
@@ -93,7 +91,7 @@ $shortcut = $shell.CreateShortcut($ShortcutPath)
 $shortcut.TargetPath = $LauncherPath
 $shortcut.WorkingDirectory = $InstallDir
 $shortcut.WindowStyle = 1
-$shortcut.Description = "やることリスト"
+$shortcut.Description = "Task List App"
 $shortcut.Save()
 
 Write-Step "Launching app..."
@@ -105,4 +103,4 @@ Write-Host ""
 Write-Host "Desktop shortcut: $ShortcutPath"
 Write-Host "Install folder:   $InstallDir"
 Write-Host ""
-Write-Host "Next time, double-click 'やることリスト' on your Desktop."
+Write-Host "Next time, double-click TaskList on your Desktop."
