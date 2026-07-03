@@ -73,11 +73,16 @@ Write-Step "Creating desktop shortcut..."
 $pythonwPath = Find-PythonW $pythonPath
 $appPath = Join-Path $InstallDir "tasks_app.py"
 
-@(
+$launcherLines = @(
     "@echo off",
-    "cd /d `"$InstallDir`"",
-    if ($pythonwPath -eq "pyw") { "start `"`" pyw -3 `"$appPath`"" } else { "start `"`" `"$pythonwPath`" `"$appPath`"" }
-) | Set-Content -Path $LauncherPath -Encoding ASCII
+    "cd /d `"$InstallDir`""
+)
+if ($pythonwPath -eq "pyw") {
+    $launcherLines += "start `"`" pyw -3 `"$appPath`""
+} else {
+    $launcherLines += "start `"`" `"$pythonwPath`" `"$appPath`""
+}
+$launcherLines | Set-Content -Path $LauncherPath -Encoding ASCII
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($ShortcutPath)
