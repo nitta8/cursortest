@@ -1,6 +1,6 @@
 # Windows one-click setup for cursortest (no Git required).
-# Version: 3
-# Usage: irm "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=3" | iex
+# Version: 4
+# Usage: powershell -ExecutionPolicy Bypass -File install.ps1
 
 $ErrorActionPreference = "Stop"
 

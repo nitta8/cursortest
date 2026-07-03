@@ -4,41 +4,26 @@
 
 ## Windows で使う
 
-### あなたがやること（これだけ）
-
-PowerShell に **この1行** をコピー＆ペーストして Enter:
+PowerShell に **この1行** をコピー＆ペースト:
 
 ```powershell
-Invoke-WebRequest "https://raw.githubusercontent.com/nitta8/cursortest/main/install.cmd" -OutFile "$env:USERPROFILE\Desktop\setup.cmd"; cmd /c "%USERPROFILE%\Desktop\setup.cmd"
+Invoke-WebRequest "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=4" -OutFile "$env:TEMP\cursortest-install.ps1"; powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\cursortest-install.ps1"
 ```
 
-あとは自動で:
-
-1. ダウンロード
-2. インストール
-3. デスクトップに「やることリスト」作成
-4. アプリ起動
-
----
-
-## アプリの使い方
-
-1. やることを入力
-2. **「追加する」** を押す
-3. タスクを選んで **「完了にする」** または **「削除」**
-
-データは `C:\Users\あなたの名前\.cursortest_tasks.json` に保存されます。
-
----
+自動でインストール → デスクトップに「やることリスト」作成 → アプリ起動。
 
 ## 2回目以降
 
-デスクトップの **「やることリスト」** をダブルクリックするだけ。
+デスクトップの **「やることリスト」** をダブルクリック。
+
+## アプリの使い方
+
+1. やることを入力 → **追加する**
+2. タスクを選ぶ → **完了にする** または **削除**
 
 ## ファイル構成
 
 | ファイル | 説明 |
 |---------|------|
-| `tasks_app.py` | やることリスト（GUI アプリ） |
-| `install.cmd` | Windows 用インストーラー |
-| `tasks.py` | コマンド版（上級者向け） |
+| `tasks_app.py` | やることリスト（GUI） |
+| `install.ps1` | インストーラー |
