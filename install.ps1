@@ -5,11 +5,11 @@ $ErrorActionPreference = "Stop"
 
 $RepoZipUrl = "https://github.com/nitta8/cursortest/archive/refs/heads/main.zip"
 $InstallDir = Join-Path $env:USERPROFILE "cursortest"
-$BinDir = Join-Path $env:USERPROFILE "bin"
 $ZipPath = Join-Path $env:TEMP "cursortest-main.zip"
 $ExtractRoot = Join-Path $env:TEMP "cursortest-extract"
-$LauncherPath = Join-Path $BinDir "tasks.cmd"
-$ProfileMarker = "# cursortest tasks command"
+$Desktop = [Environment]::GetFolderPath("Desktop")
+$ShortcutPath = Join-Path $Desktop "やることリスト.lnk"
+$LauncherPath = Join-Path $Desktop "やることリスト.cmd"
 
 function Write-Step($Message) {
     Write-Host "=> $Message" -ForegroundColor Cyan
@@ -18,67 +18,33 @@ function Write-Step($Message) {
 function Find-Python {
     $python = Get-Command python -ErrorAction SilentlyContinue
     if ($python) {
-        return @("python", $python.Source)
+        return $python.Source
     }
 
     $py = Get-Command py -ErrorAction SilentlyContinue
     if ($py) {
-        return @("py -3", $py.Source)
+        return "py"
     }
 
     return $null
 }
 
-function Add-ToUserPath([string]$Directory) {
-    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-    $parts = $userPath -split ";" | Where-Object { $_ -ne "" }
-
-    if ($parts -contains $Directory) {
-        return
+function Find-PythonW([string]$PythonPath) {
+    if ($PythonPath -eq "py") {
+        return "pyw"
     }
 
-    $newPath = if ($userPath) { "$userPath;$Directory" } else { $Directory }
-    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
-    $env:Path = "$env:Path;$Directory"
-}
-
-function Install-TasksFunction([string]$InstallDirectory) {
-    $profilePath = $PROFILE
-    $profileDir = Split-Path $profilePath -Parent
-    if (-not (Test-Path $profileDir)) {
-        New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+    $pythonw = $PythonPath -replace "python.exe", "pythonw.exe"
+    if (Test-Path $pythonw) {
+        return $pythonw
     }
 
-    $escapedDir = $InstallDirectory -replace "'", "''"
-    $profileBlock = @"
-$ProfileMarker
-function global:tasks {
-    & python '$escapedDir\tasks.py' @args
-}
-"@
-
-    if (Test-Path $profilePath) {
-        $existing = Get-Content $profilePath -Raw
-        if ($existing -match [regex]::Escape($ProfileMarker)) {
-            $existing = [regex]::Replace(
-                $existing,
-                "(?ms)$([regex]::Escape($ProfileMarker)).*?^}",
-                $profileBlock
-            )
-            Set-Content -Path $profilePath -Value $existing -Encoding UTF8
-        } else {
-            Add-Content -Path $profilePath -Value "`n$profileBlock" -Encoding UTF8
-        }
-    } else {
-        Set-Content -Path $profilePath -Value $profileBlock -Encoding UTF8
-    }
-
-    Invoke-Expression $profileBlock
+    return $PythonPath
 }
 
 Write-Step "Checking Python..."
-$pythonInfo = Find-Python
-if (-not $pythonInfo) {
+$pythonPath = Find-Python
+if (-not $pythonPath) {
     Write-Host ""
     Write-Host "Python is not installed." -ForegroundColor Red
     Write-Host "1. Open https://www.python.org/downloads/"
@@ -87,8 +53,7 @@ if (-not $pythonInfo) {
     exit 1
 }
 
-$pythonCmd = $pythonInfo[0]
-Write-Host "   Found: $($pythonInfo[1])"
+Write-Host "   Found: $pythonPath"
 
 Write-Step "Downloading cursortest..."
 if (Test-Path $ExtractRoot) {
@@ -104,49 +69,31 @@ if (Test-Path $InstallDir) {
 Expand-Archive -Path $ZipPath -DestinationPath $ExtractRoot -Force
 Move-Item (Join-Path $ExtractRoot "cursortest-main") $InstallDir
 
-Write-Step "Creating launcher in $BinDir ..."
-New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
+Write-Step "Creating desktop shortcut..."
+$pythonwPath = Find-PythonW $pythonPath
+$appPath = Join-Path $InstallDir "tasks_app.py"
+
 @(
     "@echo off",
     "cd /d `"$InstallDir`"",
-    "python tasks.py %*"
+    if ($pythonwPath -eq "pyw") { "start `"`" pyw -3 `"$appPath`"" } else { "start `"`" `"$pythonwPath`" `"$appPath`"" }
 ) | Set-Content -Path $LauncherPath -Encoding ASCII
 
-$legacyLauncher = Join-Path $env:USERPROFILE "tasks.cmd"
-if (Test-Path $legacyLauncher) {
-    Remove-Item $legacyLauncher -Force
-}
+$shell = New-Object -ComObject WScript.Shell
+$shortcut = $shell.CreateShortcut($ShortcutPath)
+$shortcut.TargetPath = $LauncherPath
+$shortcut.WorkingDirectory = $InstallDir
+$shortcut.WindowStyle = 1
+$shortcut.Description = "やることリスト"
+$shortcut.Save()
 
-Write-Step "Adding launcher folder to PATH..."
-Add-ToUserPath $BinDir
-
-Write-Step "Registering PowerShell command 'tasks'..."
-Install-TasksFunction $InstallDir
-
-Write-Step "Running a quick test..."
-Push-Location $InstallDir
-if ($pythonCmd -eq "py -3") {
-    & py -3 tasks.py add "セットアップ完了"
-    & py -3 tasks.py list
-} else {
-    & python tasks.py add "セットアップ完了"
-    & python tasks.py list
-}
-Pop-Location
+Write-Step "Launching app..."
+Start-Process $LauncherPath
 
 Write-Host ""
 Write-Host "Done!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Install folder: $InstallDir"
-Write-Host "Launcher:       $LauncherPath"
+Write-Host "Desktop shortcut: $ShortcutPath"
+Write-Host "Install folder:   $InstallDir"
 Write-Host ""
-Write-Host "Use these commands in PowerShell:"
-Write-Host "  tasks add `"牛乳を買う`""
-Write-Host "  tasks list"
-Write-Host ""
-Write-Host "If 'tasks' is still not found in this window, run:"
-Write-Host "  . `$PROFILE"
-Write-Host "  tasks list"
-Write-Host ""
-Write-Host "Or use the full path right now:"
-Write-Host "  python `"$InstallDir\tasks.py`" list"
+Write-Host "Next time, double-click 'やることリスト' on your Desktop."
