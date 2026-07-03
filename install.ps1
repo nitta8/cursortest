@@ -1,5 +1,5 @@
-# Windows one-click setup for cursortest (ASCII only for compatibility).
-# Version: 5
+# Windows setup for cursortest (ASCII only).
+# Version: 6
 
 $ErrorActionPreference = "Stop"
 
@@ -48,7 +48,6 @@ if (-not $pythonPath) {
     Write-Host ""
     Write-Host "Python is not installed." -ForegroundColor Red
     Write-Host "Install from https://www.python.org/downloads/"
-    Write-Host "Then close PowerShell and run this installer again."
     exit 1
 }
 
@@ -73,18 +72,17 @@ $pythonwPath = Find-PythonW $pythonPath
 $appPath = Join-Path $InstallDir "tasks_app.py"
 
 if ($pythonwPath -eq "pyw") {
-    $launchCommand = "start `"`" pyw -3 `"$appPath`""
+    $launchLine = "start `"`" pyw -3 `"$appPath`""
 } else {
-    $launchCommand = "start `"`" `"$pythonwPath`" `"$appPath`""
+    $launchLine = "start `"`" `"$pythonwPath`" `"$appPath`""
 }
 
-$batContent = @"
-@echo off
-cd /d "$InstallDir"
-$launchCommand
-"@
-
-Set-Content -Path $LauncherPath -Value $batContent -Encoding ASCII
+$batLines = @(
+    "@echo off",
+    "cd /d `"$InstallDir`"",
+    $launchLine
+)
+Set-Content -Path $LauncherPath -Value ($batLines -join [Environment]::NewLine) -Encoding ASCII
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($ShortcutPath)
@@ -99,8 +97,4 @@ Start-Process $LauncherPath
 
 Write-Host ""
 Write-Host "Done!" -ForegroundColor Green
-Write-Host ""
-Write-Host "Desktop shortcut: $ShortcutPath"
-Write-Host "Install folder:   $InstallDir"
-Write-Host ""
-Write-Host "Next time, double-click TaskList on your Desktop."
+Write-Host "Double-click TaskList on your Desktop next time."
