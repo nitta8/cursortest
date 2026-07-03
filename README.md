@@ -7,14 +7,14 @@
 PowerShell に **この1行** をコピー＆ペースト:
 
 ```powershell
-Invoke-WebRequest "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=4" -OutFile "$env:TEMP\cursortest-install.ps1"; powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\cursortest-install.ps1"
+Invoke-WebRequest "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=5" -OutFile "$env:TEMP\cursortest-install.ps1"; powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\cursortest-install.ps1"
 ```
 
-自動でインストール → デスクトップに「やることリスト」作成 → アプリ起動。
+自動でインストール → デスクトップに **「TaskList」** 作成 → アプリ起動。
 
 ## 2回目以降
 
-デスクトップの **「やることリスト」** をダブルクリック。
+デスクトップの **「TaskList」** をダブルクリック。
 
 ## アプリの使い方
 
