@@ -1,23 +1,42 @@
 # cursortest
 
-Cursor + GitHub + Python の動作確認用デモです。
+Cursor + GitHub + Python で作った、実用的な CLI ツール集です。
 
-## できること（このリポジトリで試したこと）
+## ツール一覧
 
-1. **Cursor（Agent）** — Python コードとテストを自動生成
-2. **Git / GitHub** — ブランチ作成 → コミット → プッシュ → Pull Request
-3. **Python** — CLI ツールの実装とユニットテスト
+### tasks.py — タスク管理（おすすめ）
 
-## 使い方
+やることをメモして、完了管理できます。データはローカルの JSON ファイルに保存されます。
 
 ```bash
-# テキスト統計
+# タスクを追加
+python3 tasks.py add "牛乳を買う"
+python3 tasks.py add "レポート提出" --due 2026-07-10
+
+# 未完了タスクを表示
+python3 tasks.py list
+
+# 完了にする / 削除
+python3 tasks.py done 1
+python3 tasks.py delete 2
+
+# 完了済みタスクを一括削除
+python3 tasks.py clear-done
+```
+
+保存先のデフォルト: `~/.cursortest_tasks.json`  
+別ファイルを使う場合: `--file ./my_tasks.json`
+
+### textstats.py — テキスト統計
+
+```bash
 python3 textstats.py "Hello, Cursor and GitHub!"
-
-# 標準入力から読み込み
 echo -e "foo bar\nfoo baz" | python3 textstats.py --top 3
+```
 
-# テスト実行
+## テスト
+
+```bash
 python3 -m unittest discover -s tests -v
 ```
 
@@ -25,6 +44,6 @@ python3 -m unittest discover -s tests -v
 
 | ファイル | 説明 |
 |---------|------|
+| `tasks.py` | タスク管理 CLI |
 | `textstats.py` | 文字数・行数・単語数を数える CLI |
-| `tests/test_textstats.py` | ユニットテスト |
-| `test.py` | 初期ファイル（空） |
+| `tests/` | ユニットテスト |
