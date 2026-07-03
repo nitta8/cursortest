@@ -7,7 +7,13 @@
 PowerShell で **この1行** を実行:
 
 ```powershell
-irm https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1 | iex
+irm "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=3" | iex
+```
+
+古い版がキャッシュされている場合:
+
+```powershell
+Invoke-WebRequest "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=3" -OutFile "$env:TEMP\install.ps1"; & "$env:TEMP\install.ps1"
 ```
 
 デスクトップに **「やることリスト」** ができます。  

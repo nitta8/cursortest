@@ -1,5 +1,6 @@
 # Windows one-click setup for cursortest (no Git required).
-# Usage: irm https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1 | iex
+# Version: 3
+# Usage: irm "https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1?v=3" | iex
 
 $ErrorActionPreference = "Stop"
 
@@ -73,16 +74,19 @@ Write-Step "Creating desktop shortcut..."
 $pythonwPath = Find-PythonW $pythonPath
 $appPath = Join-Path $InstallDir "tasks_app.py"
 
-$launcherLines = @(
-    "@echo off",
-    "cd /d `"$InstallDir`""
-)
 if ($pythonwPath -eq "pyw") {
-    $launcherLines += "start `"`" pyw -3 `"$appPath`""
+    $launchCommand = "start `"`" pyw -3 `"$appPath`""
 } else {
-    $launcherLines += "start `"`" `"$pythonwPath`" `"$appPath`""
+    $launchCommand = "start `"`" `"$pythonwPath`" `"$appPath`""
 }
-$launcherLines | Set-Content -Path $LauncherPath -Encoding ASCII
+
+$batContent = @"
+@echo off
+cd /d "$InstallDir"
+$launchCommand
+"@
+
+Set-Content -Path $LauncherPath -Value $batContent -Encoding ASCII
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($ShortcutPath)
