@@ -2,6 +2,30 @@
 
 Cursor + GitHub + Python で作った、実用的な CLI ツール集です。
 
+## Windows で一番かんたん（Git 不要）
+
+PowerShell を開いて、**この1行だけ** コピー＆ペーストしてください。
+
+```powershell
+irm https://raw.githubusercontent.com/nitta8/cursortest/main/install.ps1 | iex
+```
+
+これだけで以下が自動で行われます。
+
+1. Python の有無を確認
+2. GitHub からダウンロード
+3. `C:\Users\あなたの名前\cursortest` にインストール
+4. `C:\Users\あなたの名前\tasks.cmd` を作成
+
+インストール後はどこからでも:
+
+```powershell
+tasks.cmd add "牛乳を買う"
+tasks.cmd list
+```
+
+> Python が未インストールの場合は、表示された案内に従って Python を入れてから、もう一度上の1行を実行してください。
+
 ## ツール一覧
 
 ### tasks.py — タスク管理（おすすめ）
