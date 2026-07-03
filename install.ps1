@@ -5,8 +5,10 @@ $ErrorActionPreference = "Stop"
 
 $RepoZipUrl = "https://github.com/nitta8/cursortest/archive/refs/heads/main.zip"
 $InstallDir = Join-Path $env:USERPROFILE "cursortest"
+$BinDir = Join-Path $env:USERPROFILE "bin"
 $ZipPath = Join-Path $env:TEMP "cursortest-main.zip"
 $ExtractRoot = Join-Path $env:TEMP "cursortest-extract"
+$LauncherPath = Join-Path $BinDir "tasks.cmd"
 
 function Write-Step($Message) {
     Write-Host "=> $Message" -ForegroundColor Cyan
@@ -24,6 +26,19 @@ function Find-Python {
     }
 
     return $null
+}
+
+function Add-ToUserPath([string]$Directory) {
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $parts = $userPath -split ";" | Where-Object { $_ -ne "" }
+
+    if ($parts -contains $Directory) {
+        return
+    }
+
+    $newPath = if ($userPath) { "$userPath;$Directory" } else { $Directory }
+    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+    $env:Path = "$env:Path;$Directory"
 }
 
 Write-Step "Checking Python..."
@@ -54,12 +69,16 @@ if (Test-Path $InstallDir) {
 Expand-Archive -Path $ZipPath -DestinationPath $ExtractRoot -Force
 Move-Item (Join-Path $ExtractRoot "cursortest-main") $InstallDir
 
-$launcherPath = Join-Path $env:USERPROFILE "tasks.cmd"
+Write-Step "Creating launcher in $BinDir ..."
+New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
 @(
     "@echo off",
     "cd /d `"$InstallDir`"",
     "python tasks.py %*"
-) | Set-Content -Path $launcherPath -Encoding ASCII
+) | Set-Content -Path $LauncherPath -Encoding ASCII
+
+Write-Step "Adding launcher folder to PATH..."
+Add-ToUserPath $BinDir
 
 Write-Step "Running a quick test..."
 Push-Location $InstallDir
@@ -76,13 +95,13 @@ Write-Host ""
 Write-Host "Done!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Install folder: $InstallDir"
-Write-Host "Launcher:       $launcherPath"
+Write-Host "Launcher:       $LauncherPath"
 Write-Host ""
-Write-Host "Examples:"
-Write-Host "  tasks.cmd add `"牛乳を買う`""
-Write-Host "  tasks.cmd list"
-Write-Host "  tasks.cmd done 1"
+Write-Host "Important: close PowerShell and open it again, then run:"
+Write-Host "  tasks add `"牛乳を買う`""
+Write-Host "  tasks list"
 Write-Host ""
-Write-Host "Or from the install folder:"
+Write-Host "If PATH is not updated yet, use either:"
+Write-Host "  $LauncherPath add `"牛乳を買う`""
 Write-Host "  cd $InstallDir"
 Write-Host "  python tasks.py list"
